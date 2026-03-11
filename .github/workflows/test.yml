@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Verify Go modules
+        run: go mod verify
+
+      - name: Check formatting
+        run: |
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "The following files need formatting:"
+            gofmt -l .
+            exit 1
+          fi
+
+      - name: Run go vet
+        run: go vet ./...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build
+        run: go build -v ./...
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Test
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          files: ./coverage.out
+          fail_ci_if_error: false
+          verbose: true
+
+  acceptance-test:
+    name: Acceptance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    services:
+      ntfy:
+        image: binwiederhier/ntfy:latest
+        ports:
+          - 8080:80
+        options: >-
+          --health-cmd "wget -q --spider http://localhost:80/v1/health || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup ntfy admin user
+        run: |
+          # Wait for ntfy to be healthy
+          sleep 5
+          # Create admin user using docker exec
+          docker exec $(docker ps -q -f ancestor=binwiederhier/ntfy) \
+            sh -c "NTFY_AUTH_FILE=/var/lib/ntfy/auth.db NTFY_PASSWORD=admin ntfy user add --role=admin admin"
+
+      - name: Run acceptance tests
+        env:
+          TF_ACC: 1
+          NTFY_URL: http://localhost:8080
+          NTFY_USERNAME: admin
+          NTFY_PASSWORD: admin
+        run: go test -v -timeout 300s -run TestAcc ./...
+
+  docs-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Generate documentation
+        run: go generate ./...
+
+      - name: Check for uncommitted doc changes
+        run: |
+          if [ -n "$(git status --porcelain docs/)" ]; then
+            echo "Documentation is out of date. Please run 'go generate ./...' and commit the changes."
+            git diff docs/
+            exit 1
+          fi
