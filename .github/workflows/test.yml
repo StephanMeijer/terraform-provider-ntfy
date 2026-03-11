@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   quality:
@@ -83,11 +83,6 @@ jobs:
     name: Acceptance Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    services:
-      ntfy:
-        image: binwiederhier/ntfy:latest
-        ports:
-          - 8080:80
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,11 +94,8 @@ jobs:
 
       - name: Setup ntfy admin user
         run: |
-          # Wait for ntfy to be healthy
-          sleep 5
-          # Create admin user using docker exec
-          docker exec $(docker ps -q -f ancestor=binwiederhier/ntfy) \
-            sh -c "NTFY_AUTH_FILE=/var/lib/ntfy/auth.db NTFY_PASSWORD=admin ntfy user add --role=admin admin"
+          docker compose up -d
+          bash scripts/setup-test-ntfy.sh
 
       - name: Run acceptance tests
         env:
@@ -112,6 +104,10 @@ jobs:
           NTFY_USERNAME: admin
           NTFY_PASSWORD: admin
         run: go test -v -timeout 300s -run TestAcc ./...
+
+      - name: Stop ntfy
+        if: always()
+        run: docker compose down -v
 
   docs-check:
     name: Documentation Check
