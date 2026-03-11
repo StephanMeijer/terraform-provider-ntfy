@@ -18,3 +18,17 @@ repos:
     hooks:
       - id: shellcheck
         files: \.sh$
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: gofmt -w
+        language: system
+        types: [go]
+      - id: generate-docs
+        name: generate Terraform docs
+        entry: go generate ./...
+        language: system
+        pass_filenames: false
+        files: \.go$
