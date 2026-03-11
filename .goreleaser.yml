@@ -65,8 +65,11 @@ release:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
-  # Set to false to publish releases immediately (not as drafts)
-  draft: false
+  # Set to true to use existing draft release created by release-please
+  draft: true
+  use_existing_draft: true
+  mode: keep-existing
+  replace_existing_artifacts: true
 
 changelog:
   disable: true
