@@ -85,11 +85,6 @@ jobs:
         image: binwiederhier/ntfy:latest
         ports:
           - 8080:80
-        options: >-
-          --health-cmd "wget -q --spider http://localhost:80/v1/health || exit 1"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
