@@ -68,7 +68,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
-          DRAFT=$(gh api repos/${GITHUB_REPOSITORY}/releases/tags/$TAG --jq '.draft')
+          DRAFT=$(gh release view "$TAG" --json isDraft --jq '.isDraft')
           if [ "$DRAFT" != "true" ]; then
             echo "Error: Release $TAG is not a draft. Aborting to prevent overwriting a published release."
             exit 1
