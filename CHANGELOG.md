@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/StephanMeijer/terraform-provider-ntfy/compare/v1.0.0...v1.1.0) (2026-03-11)
+
+
+### Features
+
+* initial release ([ac56b59](https://github.com/StephanMeijer/terraform-provider-ntfy/commit/ac56b59f57e7e61e8bff90afd01302c92c52208e))
+
 ## [1.0.0](https://github.com/StephanMeijer/terraform-provider-ntfy/compare/v0.1.0...v1.0.0) (2026-03-11)
 
 
