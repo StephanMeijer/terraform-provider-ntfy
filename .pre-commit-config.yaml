@@ -1,0 +1,34 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        files: \.(yaml|yml)$
+      - id: check-json
+        files: \.json$
+      - id: detect-private-key
+
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.3.0
+    hooks:
+      - id: editorconfig-checker
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        files: \.sh$
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: gofmt -w
+        language: system
+        types: [go]
+      - id: generate-docs
+        name: generate Terraform docs
+        entry: go generate ./...
+        language: system
+        pass_filenames: false
+        files: \.go$
