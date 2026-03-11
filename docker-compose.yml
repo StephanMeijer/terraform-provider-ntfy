@@ -1,0 +1,17 @@
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    command: serve --auth-file=/var/lib/ntfy/auth.db --auth-default-access=deny-all
+    ports:
+      - "8080:80"
+    volumes:
+      - ntfy-data:/var/lib/ntfy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:80/v1/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  ntfy-data:
