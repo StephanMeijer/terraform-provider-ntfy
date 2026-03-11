@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 (2026-03-11)
+
+
+### Features
+
+* initial release ([c531eb5](https://github.com/StephanMeijer/terraform-provider-ntfy/commit/c531eb5a4047405882662452ab7cc82bd54bfae8))
+
 ## v0.1.0 (Unreleased)
 
 ### Features
